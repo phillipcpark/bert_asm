@@ -3,6 +3,23 @@ import sys
 import csv
 from deasm_utils import parse_args, get_bin_path 
 
+#
+# this module creates a flat file formatted dataset of tokenized instructions
+#   -Usage:
+#      -rp <path to single-level directory containing binaries>
+#      -wp <path to target destination for writing dataset>
+#
+#   -CSV output format:
+#      <comma-separated instruction tokens>
+#      <comma-separated instruction tokens>
+#      |
+#      |
+#      <empty row block delimiter>
+#
+#   -Notes:
+#      -all blocks for all binaries are concatenated into one file
+#
+
 # from single string representation of instruction, tokenize instruction and operands
 def tokenize_insn(insn: str) -> list:
     # first token is address

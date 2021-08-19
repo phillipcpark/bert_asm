@@ -1,7 +1,7 @@
 import angr
 import sys
 import csv
-from deasm_utils import parse_args, get_bin_path 
+from utils import parse_args, get_bin_path 
 
 #
 # this module creates a flat file formatted dataset of tokenized instructions

@@ -1,7 +1,7 @@
 import angr
 import sys
 import csv
-from deasm_utils import parse_args, get_bin_path 
+from utils import parse_args, get_bin_path, write_concat_asm 
 
 #
 # this module creates a flat file formatted dataset of tokenized instructions
@@ -9,12 +9,8 @@ from deasm_utils import parse_args, get_bin_path
 #      -rp <path to single-level directory containing binaries>
 #      -wp <path to target destination for writing dataset>
 #
-#   -CSV output format:
-#      <comma-separated instruction tokens>
-#      <comma-separated instruction tokens>
-#      |
-#      |
-#      <empty row block delimiter>
+#   -output file format:
+#      <space seperated tokens for insn n> <tab> <space seperated tokens for insn n+1>
 #
 #   -Notes:
 #      -all blocks for all binaries are concatenated into one file
@@ -92,11 +88,6 @@ if __name__=='__main__':
         cfg       = proj.analyses.CFGFast()
         deasm_bbs = asm_from_cfg(cfg, proj)
         ds_insns += deasm_bbs
+    write_concat_asm(ds_insns, write_path)
 
-    with open(write_path, 'w') as fh:
-        writer = csv.writer(fh, delimiter=',')
-        for bb in ds_insns:
-            for insn in bb:
-                writer.writerow(insn)
-            writer.writerow([]) 
 

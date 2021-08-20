@@ -5,6 +5,10 @@ from collections import Counter, OrderedDict
 import torch as th
 import torch.nn as nn
 from torchtext.vocab import vocab
+from torch.utils.data import DataLoader
+
+
+from dataset import BERTDataset
 
 def load_ds(path):
     asm_tokens = []
@@ -31,6 +35,14 @@ def sorted_tok_freqs(bbs: list) -> dict:
     return tok_counts 
 
 #
+def create_vocab(tok_freqs: OrderedDict):
+    x86_vocab = vocab(tok_freqs, min_freq=8)
+    x86_vocab.append_token('unk')
+    vocab_sz = x86_vocab.__len__()
+    x86_vocab.set_default_index(vocab_sz-1)
+    return x86_vocab
+
+#
 #
 #
 if __name__=='__main__':
@@ -38,11 +50,15 @@ if __name__=='__main__':
     ds      = load_ds(ds_path)
 
     tok_freqs = sorted_tok_freqs(ds) 
+    x86_vocab = create_vocab(tok_freqs)
 
-    x86_vocab = vocab(tok_freqs, min_freq=8)
-    x86_vocab.append_token('unk')
-    vocab_sz = x86_vocab.__len__()
-    x86_vocab.set_default_index(vocab_sz-1)
-    embeder = nn.Embedding(vocab_sz, 32)
+    bert_ds = BERTDataset(ds_path, x86_vocab, 6)
+    dl = DataLoader(bert_ds, batch_size=1, num_workers=1)
+
+    for v in dl:
+        print(v['bert_input'])
+        print("\n")
+        print(v['bert_label'])
+        sys.exit(0)
 
 

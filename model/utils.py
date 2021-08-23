@@ -1,60 +1,66 @@
-import torch.nn as nn
-import torch
-import math
+from collections import Counter, OrderedDict
+import pickle
+import csv
+import sys
 
-#
-class LayerNorm(nn.Module):
-    "Construct a layernorm module (See citation for details)."
+import torch as th
+from vocab import WordVocab 
 
-    def __init__(self, features, eps=1e-6):
-        super(LayerNorm, self).__init__()
-        self.a_2 = nn.Parameter(torch.ones(features))
-        self.b_2 = nn.Parameter(torch.zeros(features))
-        self.eps = eps
+# load pickled WordVocab instance into memory 
+def load_vocab(path: str) -> WordVocab:
+    with open(path, "rb") as fh:
+        return pickle.load(fh)
 
-    def forward(self, x):
-        mean = x.mean(-1, keepdim=True)
-        std = x.std(-1, keepdim=True)
-        return self.a_2 * (x - mean) / (std + self.eps) + self.b_2
+# used if manual Dataset in-memory instantiation desired
+def load_ds(path: str):
+    asm_tokens = []
+    with open(path, 'r') as fh:
+        reader = csv.reader(fh, delimiter=',')
 
-#
-class SublayerConnection(nn.Module):
-    """
-    A residual connection followed by a layer norm.
-    Note for code simplicity the norm is first as opposed to last.
-    """
+        curr_bb = []
+        for l in reader:
+            if not(l==[]):
+                curr_bb.append(l)
+            else:
+                asm_tokens.append(curr_bb)
+                curr_bb = []
+        asm_tokens.append(curr_bb)
+    return asm_tokens
 
-    def __init__(self, size, dropout):
-        super(SublayerConnection, self).__init__()
-        self.norm = LayerNorm(size)
-        self.dropout = nn.Dropout(dropout)
+# from list of basic block delineated token lists, get frequencies of all unique tokens
+def sorted_tok_freqs(bbs: list) -> dict:
+    all_toks = [tok for bb in ds for insn in bb for tok in insn] 
+    tok_counts = Counter(all_toks)
 
-    def forward(self, x, sublayer):
-        "Apply residual connection to any sublayer with the same size."
-        return x + self.dropout(sublayer(self.norm(x)))
+    tok_counts = sorted(tok_counts.items(), key=lambda x: x[1], reverse=True)
+    tok_counts = OrderedDict(tok_counts)
+    return tok_counts 
+
+# first 5 tokens are special tokens
+def is_special_token(token):
+    return token <= 4 
+
+# in-place replacement of masked tokens (as returned by DataLoader) with their unmasked values
+def replace_masked_tokens(masked_insns: th.Tensor, lm_labels: th.Tensor, mask_idx=4):
+    for insn, mask_labels in zip(masked_insns, lm_labels): 
+        for t_idx,token in enumerate(insn):
+            if token==mask_idx:
+                insn[t_idx] = mask_labels[t_idx]
+
+# determine largest seq len from nested list of basic block delineated token sequences
+def get_max_seq_len(insns_path: str) -> int:
+    bb_insns = load_ds(insns_path)
+    max_len  = 0
+
+    for bb in bb_insns:
+        for insn in bb:
+            # pairs of insns are concatenated, delimited by tab
+            insn = insn[0].split('\t')
+            max_len = max(max_len, len(insn[0].split(' ')), len(insn[1].split(' ')))
+    return max_len            
+
+ 
 
 
-#
-class GELU(nn.Module):
-    """
-    Paper Section 3.4, last paragraph notice that BERT used the GELU instead of RELU
-    """
 
-    def forward(self, x):
-        return 0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
-
-#
-class PositionwiseFeedForward(nn.Module):
-    "Implements FFN equation."
-
-    def __init__(self, d_model, d_ff, dropout=0.1):
-        super(PositionwiseFeedForward, self).__init__()
-        self.w_1 = nn.Linear(d_model, d_ff)
-        self.w_2 = nn.Linear(d_ff, d_model)
-        self.dropout = nn.Dropout(dropout)
-        self.activation = GELU()
-
-    def forward(self, x):
-        return self.w_2(self.dropout(self.activation(self.w_1(x))))
-
-
+                                

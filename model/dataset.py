@@ -1,8 +1,8 @@
 from torch.utils.data import Dataset
+import torch as th
 import tqdm
 import torch
 import random
-
 
 class BERTDataset(Dataset):
     def __init__(self, corpus_path, vocab, seq_len, encoding="utf-8", corpus_lines=None, on_memory=True):

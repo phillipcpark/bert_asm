@@ -23,7 +23,7 @@ if __name__=='__main__':
     bert_ds   = BERTDataset(ds_path, x86_vocab, cl_args['seq_len'])
     dl        = DataLoader(bert_ds, batch_size=cl_args['bat_sz'], num_workers=0)
 
-    bert      = BERT(len(x86_vocab), hidden=64, n_layers=3, attn_heads=4)
+    bert      = BERT(len(x86_vocab))
     bert.load_state_dict(th.load(cp_path))
 
     embeds    = None
@@ -42,7 +42,7 @@ if __name__=='__main__':
     for e_idx, embed in enumerate(embeds):
         insn_embeds.append( np.mean([e for _idx,e in enumerate(embed) if v['segment_label'][e_idx][_idx]==1], axis=0) )    
 
-    down_res = TSNE(n_components=2).fit_transform(insn_embeds[:200])
+    down_res = TSNE(n_components=2).fit_transform(insn_embeds)
 
     #FIXME plot
     for e, insn in zip(down_res, insn_strs):

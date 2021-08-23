@@ -1,6 +1,7 @@
 import angr
 import sys
 import csv
+
 from utils import parse_args, get_bin_path, write_concat_asm 
 
 #

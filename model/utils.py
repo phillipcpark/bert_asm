@@ -1,10 +1,45 @@
 from collections import Counter, OrderedDict
+import argparse
 import pickle
 import csv
 import sys
 
 import torch as th
 from vocab import WordVocab 
+
+#
+def parse_args(for_train=True) -> dict:
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-ds", help="path to dataset of concat insns", required=True, \
+                        dest="ds_path", metavar="") 
+    parser.add_argument("-vocab", help="path to pickled vocab", required=True, \
+                        dest="vocab_path", metavar="") 
+    parser.add_argument("-gpu", help="1: use gpu, 0: cpu", required=True, \
+                        dest="gpu", metavar="", type=int) 
+    parser.add_argument("-cpt", help="model checkpoint save dir path", required=True if for_train else False, \
+                        dest="cpt_dir", metavar="") 
+    parser.add_argument("-model", help="model checkpoint load path", required=True if not(for_train) else False, \
+                        dest="model_path", metavar="") 
+    parser.add_argument("-bat_sz", help="batch size", required=True, \
+                        dest="bat_sz", metavar="", type=int) 
+    parser.add_argument("-eps", help="number of epochs", required=True if for_train else False, \
+                        dest="epochs", metavar="", type=int) 
+
+    ##########
+    # defaults
+    ##########
+
+    # determined using utils.get_max_seq_len
+    MAX_INSN_LEN = 4
+    SEQ_LEN      = 2*MAX_INSN_LEN + 3 
+    
+    args = vars(parser.parse_args())
+    args.update({'seq_len': SEQ_LEN})
+
+    print(args)
+
+    return args
 
 # load pickled WordVocab instance into memory 
 def load_vocab(path: str) -> WordVocab:

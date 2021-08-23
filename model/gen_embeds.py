@@ -43,7 +43,5 @@ if __name__=='__main__':
         insn_embeds.append( np.mean([e for _idx,e in enumerate(embed) if v['segment_label'][e_idx][_idx]==1], axis=0) )    
 
     down_res = TSNE(n_components=2).fit_transform(insn_embeds)
+    utils.plot_2d_scatter(down_res, insn_strs, cl_args['plt_path'])
 
-    #FIXME plot
-    for e, insn in zip(down_res, insn_strs):
-        print(str(e[0]) + "," + str(e[1]) + "," + str(insn))

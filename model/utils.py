@@ -4,6 +4,7 @@ import pickle
 import csv
 import sys
 
+from plotly import graph_objects as go
 import torch as th
 from vocab import WordVocab 
 
@@ -12,19 +13,21 @@ def parse_args(for_train=True) -> dict:
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-ds", help="path to dataset of concat insns", required=True, \
-                        dest="ds_path", metavar="") 
+                        dest="ds_path") 
     parser.add_argument("-vocab", help="path to pickled vocab", required=True, \
-                        dest="vocab_path", metavar="") 
+                        dest="vocab_path")
     parser.add_argument("-gpu", help="1: use gpu, 0: cpu", required=True, \
-                        dest="gpu", metavar="", type=int) 
+                        dest="gpu", type=int) 
     parser.add_argument("-cpt", help="model checkpoint save dir path", required=True if for_train else False, \
-                        dest="cpt_dir", metavar="") 
+                        dest="cpt_dir") 
     parser.add_argument("-model", help="model checkpoint load path", required=True if not(for_train) else False, \
-                        dest="model_path", metavar="") 
+                        dest="model_path") 
     parser.add_argument("-bat_sz", help="batch size", required=True, \
-                        dest="bat_sz", metavar="", type=int) 
+                        dest="bat_sz", type=int) 
     parser.add_argument("-eps", help="number of epochs", required=True if for_train else False, \
-                        dest="epochs", metavar="", type=int) 
+                        dest="epochs", type=int)
+    parser.add_argument("-plt", help="plot path", required=True if not(for_train) else False, \
+                        dest="plt_path")
 
     ##########
     # defaults
@@ -36,8 +39,6 @@ def parse_args(for_train=True) -> dict:
     
     args = vars(parser.parse_args())
     args.update({'seq_len': SEQ_LEN})
-
-    print(args)
 
     return args
 
@@ -94,8 +95,22 @@ def get_max_seq_len(insns_path: str) -> int:
             max_len = max(max_len, len(insn[0].split(' ')), len(insn[1].split(' ')))
     return max_len            
 
- 
+#
+def plot_2d_scatter(vals: list, annots: list, write_path: str):
+    figure = go.Figure()
+    scatter = go.Scatter(x = [e[0] for e in vals], y = [e[1] for e in vals], \
+                         text = annots, \
+                         mode = 'text+markers', \
+                         textposition="bottom center")
 
+    figure.add_trace(scatter)
 
+    figure.update_layout(title = { 'text': 'x86_64 BERT embeddings', 'x': 0.5, \
+                                   'font': {'size': 32} },
+                         width = 1600, \
+                         height = 1200)
 
+    figure.update_xaxes(title = { 'text': 'T-SNE dim 0', 'font': {'size':24} })
+    figure.update_yaxes(title = { 'text': 'T-SNE dim 1', 'font': {'size':24} })
+    figure.write_image(write_path)
                                 

@@ -50,6 +50,13 @@ def is_special_token(token):
     return token <= 4 
 
 #
+def replace_masked_tokens(masked_insns: th.Tensor, lm_labels: th.Tensor, mask_idx=4):
+    for insn, mask_labels in zip(masked_insns, lm_labels): 
+        for t_idx,token in enumerate(insn):
+            if token==mask_idx:
+                insn[t_idx] = mask_labels[t_idx]                                
+  
+#
 #
 #
 if __name__=='__main__':
@@ -60,7 +67,7 @@ if __name__=='__main__':
     x86_vocab = load_vocab(sys.argv[2])
     seq_len   = 10 #FIXME get_seq_len(ds)
 
-    BAT_SZ  = 4096
+    BAT_SZ  = 2048
 
     bert_ds = BERTDataset(ds_path, x86_vocab, seq_len)
     dl      = DataLoader(bert_ds, batch_size=BAT_SZ, num_workers=0)
@@ -71,10 +78,10 @@ if __name__=='__main__':
 
     num_bats = bert_ds.__len__() / BAT_SZ 
 
-    for e in range(8): 
+    for e in range(1): 
         epoch_loss = []
         for idx, v in enumerate(dl):
-            if (idx == 32):
+            if (idx == 1):
                 break
 
             mask_lm_output = model.forward(v["bert_input"], v["segment_label"])
@@ -96,8 +103,9 @@ if __name__=='__main__':
     # generate embeddings
     insns = []
     for idx, v in enumerate(dl):
+        # NOTE in-place replacement (only matters in this scope)
+        replace_masked_tokens(v["bert_input"], v["bert_label"])
 
-        #FIXME FIXME need instructions without random masking!!
         embeds = bert.forward(v["bert_input"], v["segment_label"], gen_embed=True).detach().tolist()   
 
         insn_strs = []

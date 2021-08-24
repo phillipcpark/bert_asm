@@ -23,7 +23,7 @@ Model was pretrained on AWS **g4dn.4xlarge** EC2 instance, and similar specs wil
 
 ## Usage
 1. Generate dataset from binaries
-> python3 gen_ds.py -rp <path to single-level directory of binaries> -wp <target path for dataset in flat file format>
+> python3 gen_ds.py -rp \<path to single-level directory of binaries\> -wp \<target path for dataset in flat file format\>
 2. Generate WordVocab pickle
 > python3 build_vocab.py -c \<corpus path\> -o \<output pickle\> -s \<vocab size\> -m \<min word frequency\> 
 3. Pretrain BERT with language model target

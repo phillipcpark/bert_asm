@@ -14,7 +14,12 @@ Note: all model files in arch subdirectory taken from https://github.com/coderti
 **resources.zip** contains:
 * instruction datasets from several binutils (train) and diffutils (test) binaries
 * x86-64 WordVocab pickles ('small': 17548, 'medium': 45852, 'large':64953)
-* BERT (hidden: 128, layers=8, attn_heads=8) pretrained on binutils instructions, using 'large' vocabulary
+* BERT (hidden: 128, layers=8, attn_heads=8) checkpoint file, pretrained on binutils instructions, using 'large' vocabulary
+
+## System Specs
+Model was pretrained on AWS **g4dn.4xlarge** EC2 instance, and similar specs will be necessary for pretraining BERT with comparable dimensions
+* Nvidia T4 GPU (16 gb)
+* 64gb RAM
 
 ## Usage
 1. Generate dataset from binaries

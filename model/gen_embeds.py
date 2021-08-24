@@ -9,8 +9,8 @@ from dataset import BERTDataset
 from arch.bert import BERTLM, BERT 
 import utils
 
-
-
+#
+# generate embeddings using pretrained x86-64 BERT, perform dimensionality reduction via T-SNE, and write scatter plot
 #
 if __name__=='__main__':
     cl_args = utils.parse_args(for_train=False)

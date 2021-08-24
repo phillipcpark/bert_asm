@@ -11,7 +11,7 @@ class BERT(nn.Module):
 
     #def __init__(self, vocab_size, hidden=768, n_layers=12, attn_heads=12, dropout=0.1):
 
-    def __init__(self, vocab_size, hidden=128, n_layers=4, attn_heads=4, dropout=0.1):
+    def __init__(self, vocab_size, hidden=128, n_layers=8, attn_heads=8, dropout=0.1):
         """
         :param vocab_size: vocab_size of total words
         :param hidden: BERT model hidden size
